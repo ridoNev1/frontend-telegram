@@ -137,7 +137,13 @@ export default {
       this.setPrivateChat()
     },
     setPrivateChat () {
-      const privateChats = this.roomChat.filter(e => e.sender === this.receiverData || e.sender === this.senderData || e.receiver)
+      const privateChats = this.roomChat.filter(e => {
+        if (this.receiverData === null) {
+          return e.sender === this.receiverData || e.sender === this.senderData
+        } else {
+          return e.receiver === this.receiverData || e.sender === this.receiverData
+        }
+      })
       this.privateChat = privateChats
     }
   },
