@@ -61,6 +61,7 @@
         </div>
         <div v-else class="chat-thereis">
           <div class="chat-navbar bg-white">
+            <img src="../assets/back.png" alt="back" @click="showChat1" style="cursor: pointer;">
             <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
               <img src="../assets/Online.png" alt="onlineBar">
             </div>
@@ -120,7 +121,7 @@
 import io from 'socket.io-client'
 import { url } from '../helpers/env'
 import EditProfile from '../components/EditProfile'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'Home',
@@ -144,6 +145,11 @@ export default {
       iduser: localStorage.getItem('iduser')
     }
   },
+  computed: {
+    ...mapGetters({
+      usersDetail: 'users/getDetailUsers'
+    })
+  },
   methods: {
     showChat1 (receiver) {
       this.chatMessage = 1
@@ -159,6 +165,10 @@ export default {
         receiver: this.receiverData
       })
       this.historyMessage()
+      localStorage.setItem('image', this.usersDetail.image)
+
+      const listFriend = document.querySelector('.friend-content')
+      listFriend.classList.toggle('friend-content-toggle')
     },
     sendChat () {
       const message = {
@@ -246,6 +256,9 @@ export default {
 .navbar-friend h3 {
   color: #7E98DF;
   font-weight: bold;
+}
+.chat-navbar img:nth-child(1) {
+  display: none;
 }
 /* hamburger */
 .hamburger-menu {
@@ -429,7 +442,7 @@ export default {
 .chat-navbar {
   padding: 0 20px;
   display: grid;
-  grid-template-columns: 70px 11fr;
+  grid-template-columns: 70px 1fr;
   align-items: center;
 }
 .profile-pict {
@@ -519,8 +532,31 @@ export default {
   position: fixed;
   left: -400px;
   transition: all .2s ease;
+  z-index: 4;
 }
 .edit-profile-page-toggle {
   left: 0;
+}
+
+/* responsive breakpoin */
+@media screen and (max-width: 720px) {
+  .chat-page {
+    grid-template-columns: 1fr;
+  }
+  .friend-content {
+    position: fixed;
+    height: 100vh;
+    width: 100%;
+    z-index: 2;
+  }
+  .friend-content-toggle {
+    display: none;
+  }
+  .chat-navbar {
+    grid-template-columns: 30px 70px 1fr;
+  }
+  .chat-navbar img:nth-child(1) {
+    display: unset;
+  }
 }
 </style>

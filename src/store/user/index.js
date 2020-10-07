@@ -80,6 +80,19 @@ const actions = {
         console.log(err)
       })
     })
+  },
+  register: (context, payload) => {
+    return new Promise((resolve, reject) => {
+      axios.post(`${url}/users/register`, {
+        fullname: payload.fullname,
+        email: payload.email,
+        password: payload.password
+      }).then(result => {
+        resolve(result.data.message)
+      }).catch(err => {
+        console.log(err)
+      })
+    })
   }
 }
 

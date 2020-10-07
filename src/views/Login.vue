@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    <UsersBox />
+    <UsersBox type="login"/>
   </div>
 </template>
 
