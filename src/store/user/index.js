@@ -28,7 +28,9 @@ const actions = {
         localStorage.setItem('refreshToken', result.data.data.refreshToken)
         localStorage.setItem('token', result.data.data.token)
         localStorage.setItem('fullname', result.data.data.fullname)
+        localStorage.setItem('image', result.data.data.image)
         localStorage.setItem('email', payload.email)
+        // console.log(result.data.data)
       }).catch(err => {
         console.log(err)
       })

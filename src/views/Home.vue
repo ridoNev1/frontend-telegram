@@ -5,10 +5,18 @@
         <div class="navbar-friend">
           <h3>Telegram</h3>
           <div class="hamburger-menu mt-2">
-            <input class="hamburger-animation" type="checkbox" />
+            <input class="hamburger-animation" type="checkbox" @click="navToggle"/>
             <span></span>
             <span></span>
             <span></span>
+          </div>
+          <div class="aplication-menu">
+            <p @click="settingApp"><img src="../assets/Settings.png" alt="setting" class="mr-3"> Settings</p>
+            <p><img src="../assets/Contacts.png" alt="Contact" class="mr-3"> Contacts</p>
+            <p><img src="../assets/Vector.png" alt="Cals" style="margin-left: -5px; margin-right: 11px;"> Calls</p>
+            <p><img src="../assets/bookmark.png" alt="Save" style="margin-left: 2px; margin-right: 19px;"> Save Message</p>
+            <p><img src="../assets/Invite friends.png" alt="invite" style="margin-left: -10px; margin-right: 19px;"> Invite Friends</p>
+            <p><img src="../assets/FAQ.png" alt="faq" style="margin-left: -2px; margin-right: 18px;"> Telegram FAQ</p>
           </div>
         </div>
         <div class="chat-search">
@@ -31,7 +39,7 @@
               <span></span>
             </div>
             <div class="list-chatbox" v-else>
-              <div class="profile-image1">
+              <div class="profile-image1" :style="`background-image: url(http://localhost:3008/${item.image});`">
                 <img src="../assets/Online.png" alt="onlineBar">
               </div>
               <div class="name-chats">
@@ -53,7 +61,7 @@
         </div>
         <div v-else class="chat-thereis">
           <div class="chat-navbar bg-white">
-            <div class="profile-pict">
+            <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
               <img src="../assets/Online.png" alt="onlineBar">
             </div>
             <div class="name-chats">
@@ -62,16 +70,30 @@
             </div>
           </div>
           <div class="chat-colunm">
+            <div class="mt-3" v-for="(item, index2) in historyChat" :key="'a' + index2">
+              <div class="chat-box" v-if="item.sender !== senderData">
+                <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
+                  <img src="../assets/Online.png" alt="onlineBar">
+                </div>
+                <p>{{item.message}}</p>
+              </div>
+              <div class="chat-box2" v-else>
+                <p>{{item.message}}</p>
+                <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${senderImage});`">
+                  <img src="../assets/Online.png" alt="onlineBar">
+                </div>
+              </div>
+            </div>
             <div class="mt-3" v-for="(item, index) in privateChat" :key="index">
               <div class="chat-box" v-if="item.sender !== senderData">
-                <div class="profile-pict">
+                <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
                   <img src="../assets/Online.png" alt="onlineBar">
                 </div>
                 <p>{{item.msg}}</p>
               </div>
               <div class="chat-box2" v-else>
                 <p>{{item.msg}}</p>
-                <div class="profile-pict">
+                <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${senderImage});`">
                   <img src="../assets/Online.png" alt="onlineBar">
                 </div>
               </div>
@@ -89,6 +111,7 @@
           </div>
         </div>
       </div>
+      <EditProfile class="edit-profile-page" @settingtoggle="settingApp"/>
     </div>
   </div>
 </template>
@@ -96,9 +119,13 @@
 <script>
 import io from 'socket.io-client'
 import { url } from '../helpers/env'
+import EditProfile from '../components/EditProfile'
 
 export default {
   name: 'Home',
+  components: {
+    EditProfile
+  },
   data () {
     return {
       chatMessage: 0,
@@ -109,16 +136,27 @@ export default {
       textChat: '',
       listUser: null,
       receiverName: null,
-      privateChat: []
+      privateChat: [],
+      senderImage: localStorage.getItem('image'),
+      receiverImage: null,
+      historyChat: []
     }
   },
   methods: {
     showChat1 (receiver) {
       this.chatMessage = 1
-      // this.roomChat = []
       this.receiverData = receiver.email
       this.receiverName = receiver.fullname
+      this.receiverImage = receiver.image
+      this.privateChat = []
+      this.roomChat = []
+
       this.setPrivateChat()
+      this.socket.emit('get-history-message', {
+        sender: this.senderData,
+        receiver: this.receiverData
+      })
+      this.historyMessage()
     },
     sendChat () {
       const message = {
@@ -145,6 +183,19 @@ export default {
         }
       })
       this.privateChat = privateChats
+    },
+    navToggle () {
+      const menu = document.querySelector('.aplication-menu')
+      menu.classList.toggle('aplication-menu-toggle')
+    },
+    historyMessage () {
+      this.socket.on('history-message', (payload) => {
+        this.historyChat = payload
+      })
+    },
+    settingApp () {
+      const setting = document.querySelector('.edit-profile-page')
+      setting.classList.toggle('edit-profile-page-toggle')
     }
   },
   mounted () {
@@ -164,6 +215,9 @@ export default {
 </script>
 
 <style scoped>
+.home {
+  font-family: 'Rubik', sans-serif !important;
+}
 .chat-page {
   display: grid;
   grid-template-columns: 360px 1fr;
@@ -227,6 +281,31 @@ export default {
 }
 .hamburger-menu input:checked ~ span:nth-child(4) {
   transform: rotate(-45deg) translate(1px, 2px);
+}
+
+.aplication-menu {
+  position: absolute;
+  background-color: #7E98DF;
+  width: 200px;
+  border-radius: 35px 10px 35px 35px;
+  padding: 20px;
+  margin-top: 40px;
+  margin-left: 110px;
+  height: 0;
+  transform: scale(0);
+  transition: all .4s ease;
+}
+.aplication-menu p {
+  color: white;
+  cursor: pointer;
+}
+.aplication-menu p:hover {
+  color: #e1e8ff;
+}
+
+.aplication-menu-toggle {
+  height: 270px;
+  transform: scale(1);
 }
 
 /* search-message */
@@ -293,7 +372,7 @@ export default {
 .profile-image1 {
   width: 78px;
   height: 78px;
-  background-image: url(../assets/suzy.png);
+  /* background-image: url(../assets/suzy.png); */
   background-size: cover;
   border-radius: 30px;
   display: flex;
@@ -344,13 +423,12 @@ export default {
 .chat-navbar {
   padding: 0 20px;
   display: grid;
-  grid-template-columns: 1fr 11fr;
+  grid-template-columns: 70px 11fr;
   align-items: center;
 }
 .profile-pict {
   width: 60px;
   height: 60px;
-  background-image: url(../assets/suzy.png);
   background-size: cover;
   border-radius: 20px;
   display: flex;
@@ -378,7 +456,10 @@ export default {
 }
 
 .chat-box {
-  display: flex;
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+  justify-items: start;
 }
 .chat-box p {
   background-color: #7E98DF;
@@ -387,9 +468,12 @@ export default {
   border-radius: 35px 35px 35px 10px;
   margin-left: 10px;
 }
+
 .chat-box2 {
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: 1fr 60px;
+  justify-items: end;
+  align-items: center;
 }
 .chat-box2 p {
   background-color: white;
@@ -422,5 +506,15 @@ export default {
 }
 .chat-button img {
   cursor: pointer;
+}
+
+/* edit-profile-page */
+.edit-profile-page {
+  position: fixed;
+  left: -400px;
+  transition: all .2s ease;
+}
+.edit-profile-page-toggle {
+  left: 0;
 }
 </style>

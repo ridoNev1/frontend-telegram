@@ -3,6 +3,7 @@
     <div class="user-data">
       <div class="box-title">
         <h3>Login</h3>
+        <p>Hi, Welcome back!</p>
         <form class="users-input" @submit.prevent="login">
           <div class="md-form">
             <input type="email" id="form-email" class="form-control" v-model="userEmail" required>
@@ -12,8 +13,16 @@
             <input type="password" id="form-password" class="form-control" v-model="userPassword" required>
             <label for="form-password">Password</label>
           </div>
+          <p style="text-align: right; color: #7E98DF;" class="mt-4 mb-4">Forgot password ?</p>
           <button type="submit" class="input-button">Login</button>
         </form>
+        <div class="login-with">
+          <span></span>
+          <p>Login With</p>
+          <span></span>
+        </div>
+        <button class="input-button" style="color: #7E98DF; background-color: transparent; border: 2px solid #7E98DF;">Google</button>
+        <p class="mt-3">Don’t have an account? Sign Up</p>
       </div>
     </div>
   </div>
@@ -47,6 +56,7 @@ export default {
           localStorage.removeItem('token')
           localStorage.removeItem('fullname')
           localStorage.removeItem('email')
+          localStorage.removeItem('image')
         } else {
           window.location = '/'
         }
@@ -76,7 +86,7 @@ export default {
   width: 35%;
   background-color: #fff;
   border-radius: 15px;
-  padding: 20px;
+  padding: 40px;
 }
 .box-title h3 {
   color: #7E98DF;
@@ -87,10 +97,26 @@ export default {
   width: 100%;
   outline: none;
   background-color: #7E98DF;
-  border-radius: 12px;
-  padding: 9px 0;
+  border-radius: 70px;
+  padding: 15px 0;
   border: none;
   color: white;
   font-weight: bold;
+}
+.login-with {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.login-with p {
+  margin-top: 15px;
+  color: rgb(187, 184, 184);
+}
+.login-with span {
+  height: 2px;
+  width: 30%;
+  background-color: rgb(202, 201, 201);
+  display: flex;
 }
 </style>
