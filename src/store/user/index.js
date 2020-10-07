@@ -3,7 +3,8 @@ import { url } from '../../helpers/env'
 
 const state = () => {
   return {
-    token: localStorage.getItem('token') || null
+    token: localStorage.getItem('token') || null,
+    detailUsers: []
   }
 }
 
@@ -14,6 +15,15 @@ const getters = {
     } else {
       return false
     }
+  },
+  getDetailUsers: (state) => {
+    return state.detailUsers
+  }
+}
+
+const mutations = {
+  SET_DETAIL_USERS: (state, payload) => {
+    state.detailUsers = payload
   }
 }
 
@@ -29,8 +39,43 @@ const actions = {
         localStorage.setItem('token', result.data.data.token)
         localStorage.setItem('fullname', result.data.data.fullname)
         localStorage.setItem('image', result.data.data.image)
+        localStorage.setItem('iduser', result.data.data.iduser)
         localStorage.setItem('email', payload.email)
         // console.log(result.data.data)
+      }).catch(err => {
+        console.log(err)
+      })
+    })
+  },
+  getDetailUser: (context, payload) => {
+    return new Promise((resolve, reject) => {
+      axios.get(`${url}/users/getdetail/${payload}`).then(result => {
+        context.commit('SET_DETAIL_USERS', result.data.data[0])
+      }).catch(err => {
+        reject(err)
+      })
+    })
+  },
+  updateUsers: (context, payload) => {
+    return new Promise((resolve, reject) => {
+      axios.patch(`${url}/users/updatedata/${payload.id}`, {
+        phone: payload.phone,
+        bio: payload.bio,
+        fullname: payload.fullname
+      }).then(result => {
+        resolve(result.data.message)
+      }).catch(err => {
+        reject(err)
+      })
+    })
+  },
+  updateImage: (context, payload) => {
+    return new Promise((resolve, reject) => {
+      const fd = new FormData()
+      fd.append('image', payload.image)
+      axios.patch(`${url}/users/updateimage/${payload.iduser}`, fd).then(result => {
+        resolve(result.data.message)
+        console.log(result.data.message)
       }).catch(err => {
         console.log(err)
       })
@@ -42,5 +87,6 @@ export default {
   namespaced: true,
   state,
   getters,
+  mutations,
   actions
 }

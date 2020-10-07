@@ -2,44 +2,54 @@
   <div class="edit-profile">
     <div class="username" @click="$emit('settingtoggle')" style="cursor: pointer;">
       <img src="../assets/back.png" alt="btn-back">
-      <p>Username</p>
+      <p>@{{usersDetail.username}}</p>
     </div>
     <div class="user-profile">
-      <div class="profile-pict">
-        <span></span>
+      <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${usersDetail.image});`">
+        <form class="form-image" enctype="multipart/form-data" @change.prevent="updateImage">
+          <label class="custom-file-upload">
+            <input type="file" @change="upload($event)"/>
+            <b-icon icon="camera2" scale="2" class="mt-1"></b-icon>
+          </label>
+        </form>
       </div>
       <div class="profile-data">
-        <p>Gloria Mckinney</p>
-        <p>+375(29)9638433</p>
+        <div class="fullname">
+          <p v-if="nameToggle === 0">{{usersDetail.fullname}}</p>
+          <div class="md-form m-1" v-else>
+            <input type="text" id="form-phone" class="form-control" v-model="userName" required>
+            <b-icon icon="arrow-right-circle-fill" class="edit-btn" variant="info" scale="1.5" @click="editDataUsername"></b-icon>
+          </div>
+          <b-icon icon="pencil" class="edit-btn" @click="editusername($event)"></b-icon>
+        </div>
+        <p>{{usersDetail.phone}}</p>
       </div>
     </div>
     <div class="user-account">
       <h5>Account</h5>
       <div class="chage-phone-number">
         <div v-if="editToggle === 0">
-          <p>+375(29)9638433</p>
+          <p>{{usersDetail.phone}}</p>
           <p>Edit phone number</p>
         </div>
         <div v-else>
           <div class="md-form m-1">
-            <input type="email" id="form-phone" class="form-control" v-model="userPhone" required>
-            <label for="form-phone">Phone</label>
+            <input type="text" id="form-phone" class="form-control" v-model="userPhone" required>
           </div>
-          <b-icon icon="pencil" class="edit-btn" @click="editPhone"></b-icon>
+          <b-icon icon="arrow-right-circle-fill" class="edit-btn" variant="info" scale="1.5" @click="editPhone"></b-icon>
         </div>
         <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn($event)"></b-icon>
       </div>
       <div class="chage-phone-number">
         <div v-if="bioToggle === 0">
-          <p>I’m Senior Frontend Developer from Microsoft</p>
+          <p>{{usersDetail.bio}}</p>
           <p>Bio</p>
         </div>
         <div v-else>
           <div class="md-form m-1">
-            <input type="email" id="form-phone" class="form-control" v-model="userBio" required>
-            <label for="form-phone">Bio</label>
+            <input type="text" id="form-phone" class="form-control" v-model="userBio" required>
           </div>
-          <b-icon icon="pencil" class="edit-btn" @click="editBio"></b-icon>
+          <b-icon icon="arrow-right-circle-fill" class="edit-btn" variant="info" scale="1.5" @click="editBio"></b-icon>
         </div>
         <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn2($event)"></b-icon>
       </div>
@@ -59,30 +69,83 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   name: 'EditProfile',
   data () {
     return {
       editToggle: 0,
-      userPhone: '',
+      userPhone: null,
       bioToggle: 0,
-      userBio: ''
+      userBio: null,
+      nameToggle: 0,
+      userName: null,
+      image: null
     }
+  },
+  computed: {
+    ...mapGetters({
+      usersDetail: 'users/getDetailUsers'
+    })
   },
   methods: {
     editToggleBtn (e) {
       this.editToggle = 1
       e.target.style.display = 'none'
+      this.userPhone = this.usersDetail.phone
+      this.userBio = this.usersDetail.bio
+      this.userName = this.usersDetail.fullname
     },
     editToggleBtn2 (e) {
       this.bioToggle = 1
       e.target.style.display = 'none'
+      this.userBio = this.usersDetail.bio
+      this.userPhone = this.usersDetail.phone
+      this.userName = this.usersDetail.fullname
+    },
+    editusername (e) {
+      this.nameToggle = 1
+      e.target.style.display = 'none'
+      this.userBio = this.usersDetail.bio
+      this.userPhone = this.usersDetail.phone
+      this.userName = this.usersDetail.fullname
     },
     editPhone () {
-      console.log(this.userPhone)
+      const data = {
+        bio: this.userBio,
+        phone: this.userPhone,
+        id: this.usersDetail.iduser,
+        fullname: this.userName
+      }
+      this.editDataUser(data).then(result => {
+        this.$swal(result)
+        window.location = '/'
+      })
+    },
+    editDataUsername () {
+      const data = {
+        bio: this.userBio,
+        phone: this.userPhone,
+        id: this.usersDetail.iduser,
+        fullname: this.userName
+      }
+      this.editDataUser(data).then(result => {
+        this.$swal(result)
+        window.location = '/'
+      })
     },
     editBio () {
-      console.log(this.userBio)
+      const data = {
+        bio: this.userBio,
+        phone: this.userPhone,
+        id: this.usersDetail.iduser,
+        fullname: this.userName
+      }
+      this.editDataUser(data).then(result => {
+        this.$swal(result)
+        window.location = '/'
+      })
     },
     logout () {
       localStorage.removeItem('refreshToken')
@@ -91,6 +154,28 @@ export default {
       localStorage.removeItem('email')
       localStorage.removeItem('image')
       window.location = '/login'
+    },
+    ...mapActions({
+      editDataUser: 'users/updateUsers',
+      updateImageData: 'users/updateImage'
+    }),
+    upload (event) {
+      this.image = event.target.files[0]
+    },
+    updateImage () {
+      const dataimage = {
+        image: this.image,
+        iduser: this.usersDetail.iduser
+      }
+      this.updateImageData(dataimage).then(result => {
+        if (result === 'File must be png/jpg/jpeg, max size 1mb') {
+          this.$swal('File must be png/jpg/jpeg, max size 1mb')
+        } else if (result === 'Ukuran File terlalu besar') {
+          this.$swal('max file 1mb')
+        } else {
+          window.location = '/'
+        }
+      })
     }
   }
 }
@@ -135,7 +220,7 @@ export default {
 .profile-pict {
   width: 78px;
   height: 78px;
-  background-image: url(../assets/suzy.png);
+  /* background-image: url(../assets/suzy.png); */
   background-size: cover;
   border-radius: 30px;
 }
@@ -184,5 +269,38 @@ export default {
 }
 .setting-list p:hover {
   color: #7e98df;
+}
+/* .custom-file-input */
+.custom-file-input::-webkit-file-upload-button {
+  cursor: pointer;
+  height: 78px;
+  width: 78px;
+}
+.form-image {
+  height: 100%;
+  border-radius: 30px;
+  transition: all .3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.form-image:hover {
+  background-color: rgba(5, 5, 5, 0.3);
+}
+.custom-file-upload input[type="file"] {
+  display: none;
+  border-radius: 10px;
+  font-weight: bold;
+  padding: 8px;
+  margin: 20px auto;
+}
+
+.custom-file-upload {
+  color: white;
+  padding: 25px 20px;
+  opacity: 0;
+}
+.custom-file-upload:hover {
+  opacity: 1;
 }
 </style>

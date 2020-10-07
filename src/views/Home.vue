@@ -120,6 +120,7 @@
 import io from 'socket.io-client'
 import { url } from '../helpers/env'
 import EditProfile from '../components/EditProfile'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Home',
@@ -139,7 +140,8 @@ export default {
       privateChat: [],
       senderImage: localStorage.getItem('image'),
       receiverImage: null,
-      historyChat: []
+      historyChat: [],
+      iduser: localStorage.getItem('iduser')
     }
   },
   methods: {
@@ -196,7 +198,10 @@ export default {
     settingApp () {
       const setting = document.querySelector('.edit-profile-page')
       setting.classList.toggle('edit-profile-page-toggle')
-    }
+    },
+    ...mapActions({
+      getDetailUsers: 'users/getDetailUser'
+    })
   },
   mounted () {
     this.socket.emit('get-all-users', [])
@@ -210,6 +215,7 @@ export default {
         this.setPrivateChat()
       }
     })
+    this.getDetailUsers(this.iduser)
   }
 }
 </script>
