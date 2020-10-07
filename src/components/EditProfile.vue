@@ -1,7 +1,7 @@
 <template>
   <div class="edit-profile">
-    <div class="username">
-      <img src="../assets/back.png" alt="btn-back" @click="$emit('settingtoggle')" style="cursor: pointer;">
+    <div class="username" @click="$emit('settingtoggle')" style="cursor: pointer;">
+      <img src="../assets/back.png" alt="btn-back">
       <p>Username</p>
     </div>
     <div class="user-profile">
@@ -29,6 +29,31 @@
         </div>
         <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn($event)"></b-icon>
       </div>
+      <div class="chage-phone-number">
+        <div v-if="bioToggle === 0">
+          <p>I’m Senior Frontend Developer from Microsoft</p>
+          <p>Bio</p>
+        </div>
+        <div v-else>
+          <div class="md-form m-1">
+            <input type="email" id="form-phone" class="form-control" v-model="userBio" required>
+            <label for="form-phone">Bio</label>
+          </div>
+          <b-icon icon="pencil" class="edit-btn" @click="editBio"></b-icon>
+        </div>
+        <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn2($event)"></b-icon>
+      </div>
+    </div>
+    <div class="setting-account">
+      <p class="font-weight-bold mt-4" style="font-size: 19px;">Setting</p>
+      <div class="setting-list">
+        <p><img src="../assets/Union.png" alt="notif" class="mr-2"> Notification and Sound</p>
+        <p><img src="../assets/security.png" alt="privat" class="mr-3"> Privati and Security</p>
+        <p><img src="../assets/data.png" alt="" class="mr-2"> Data and Storage</p>
+        <p><img src="../assets/Chat.png" alt="chat" class="mr-2"> Chat Setiing</p>
+        <p><img src="../assets/Device.png" alt="device" class="mr-2"> Devices</p>
+        <p @click="logout"><b-icon icon="x-circle-fill" font-scale="1.4" class="mr-2"></b-icon> LogOut</p>
+      </div>
     </div>
   </div>
 </template>
@@ -39,7 +64,9 @@ export default {
   data () {
     return {
       editToggle: 0,
-      userPhone: ''
+      userPhone: '',
+      bioToggle: 0,
+      userBio: ''
     }
   },
   methods: {
@@ -47,8 +74,23 @@ export default {
       this.editToggle = 1
       e.target.style.display = 'none'
     },
+    editToggleBtn2 (e) {
+      this.bioToggle = 1
+      e.target.style.display = 'none'
+    },
     editPhone () {
       console.log(this.userPhone)
+    },
+    editBio () {
+      console.log(this.userBio)
+    },
+    logout () {
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('token')
+      localStorage.removeItem('fullname')
+      localStorage.removeItem('email')
+      localStorage.removeItem('image')
+      window.location = '/login'
     }
   }
 }
@@ -62,6 +104,14 @@ export default {
   padding: 20px;
   font-family: 'Rubik', sans-serif !important;
   color: rgb(80, 80, 80);
+  overflow: scroll;
+}
+.edit-profile::-webkit-scrollbar {
+  height: 0;
+  width: 2px;
+}
+.edit-profile::-webkit-scrollbar-thumb {
+  background-color: rgb(189, 188, 188);
 }
 
 .username {
@@ -112,7 +162,6 @@ export default {
 .chage-phone-number {
   margin-top: 19px;
   border-bottom: 1.5px solid rgb(226, 226, 226);
-  border-top: 1.5px solid rgb(226, 226, 226);
   padding: 12px 0;
 }
 .chage-phone-number p:nth-child(1) {
@@ -128,5 +177,12 @@ export default {
   margin-top: -50px;
   cursor: pointer;
 }
-
+/* setting-list */
+.setting-list p {
+  cursor: pointer;
+  transition: all .3s ease;
+}
+.setting-list p:hover {
+  color: #7e98df;
+}
 </style>
