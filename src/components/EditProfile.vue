@@ -63,6 +63,7 @@
         <p><img src="../assets/Chat.png" alt="chat" class="mr-2"> Chat Setiing</p>
         <p><img src="../assets/Device.png" alt="device" class="mr-2"> Devices</p>
         <p @click="logout"><b-icon icon="x-circle-fill" font-scale="1.4" class="mr-2"></b-icon> LogOut</p>
+        <p><router-link to="/about">About</router-link></p>
       </div>
     </div>
   </div>

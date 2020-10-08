@@ -62,7 +62,7 @@
         <div v-else class="chat-thereis">
           <div class="chat-navbar bg-white">
             <img src="../assets/back.png" alt="back" @click="showChat1" style="cursor: pointer;">
-            <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
+            <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage}); cursor: pointer;`" @click="showReceiver">
               <img src="../assets/Online.png" alt="onlineBar">
             </div>
             <div class="name-chats">
@@ -113,6 +113,7 @@
         </div>
       </div>
       <EditProfile class="edit-profile-page" @settingtoggle="settingApp"/>
+      <ReceiverData  class="friend-slieder" @sideright="showReceiver"/>
     </div>
   </div>
 </template>
@@ -122,11 +123,13 @@ import io from 'socket.io-client'
 import { url } from '../helpers/env'
 import EditProfile from '../components/EditProfile'
 import { mapActions, mapGetters } from 'vuex'
+import ReceiverData from '../components/ReceiverData'
 
 export default {
   name: 'Home',
   components: {
-    EditProfile
+    EditProfile,
+    ReceiverData
   },
   data () {
     return {
@@ -211,7 +214,11 @@ export default {
     },
     ...mapActions({
       getDetailUsers: 'users/getDetailUser'
-    })
+    }),
+    showReceiver () {
+      const sideright = document.querySelector('.friend-slieder')
+      sideright.classList.toggle('friend-slider-box')
+    }
   },
   mounted () {
     this.socket.emit('get-all-users', [])
@@ -536,6 +543,19 @@ export default {
 }
 .edit-profile-page-toggle {
   left: 0;
+}
+
+/* friend-slieder */
+.friend-slieder {
+  position: fixed;
+  height: 100vh;
+  right: -500px;
+  width: 360px;
+  padding: 30px;
+  transition: all .3s ease;
+}
+.friend-slider-box {
+  right: 0;
 }
 
 /* responsive breakpoin */

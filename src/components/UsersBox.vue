@@ -70,7 +70,15 @@ export default {
       }
       this.onLogin(dataUsers).then(response => {
         if (response === "Cannot read property 'password' of undefined") {
-          this.alertExist()
+          this.alertExist(response)
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('token')
+          localStorage.removeItem('fullname')
+          localStorage.removeItem('email')
+          localStorage.removeItem('image')
+          localStorage.removeItem('iduser')
+        } else if (response === 'Incorrect password! Please try again') {
+          this.alertExist(response)
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('token')
           localStorage.removeItem('fullname')
@@ -82,10 +90,10 @@ export default {
         }
       })
     },
-    alertExist () {
+    alertExist (result) {
       Swal.fire({
         icon: 'error',
-        title: 'Username Doesnt Exist!',
+        title: result,
         text: 'Please check your personal info or create a new one'
       })
     },
