@@ -75,7 +75,7 @@ const actions = {
       fd.append('image', payload.image)
       axios.patch(`${url}/users/updateimage/${payload.iduser}`, fd).then(result => {
         resolve(result.data.message)
-        console.log(result.data.message)
+        // console.log(result.data.message)
       }).catch(err => {
         console.log(err)
       })

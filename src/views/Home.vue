@@ -34,7 +34,7 @@
           <p class="text-white">.</p>
         </div>
         <div class="chat-list">
-          <div @click="showChat1(item)" v-for="(item, index) in listUser" :key="index">
+          <div @click="showChat1(item, index)" v-for="(item, index) in listFriends" :key="index">
             <div v-if="item.email === senderData">
               <span></span>
             </div>
@@ -44,11 +44,14 @@
               </div>
               <div class="name-chats">
                 <p>{{item.fullname}}</p>
-                <p>Iya sayang...</p>
+                <p>{{item.newchats}}</p>
               </div>
               <div class="time-notif">
                 <p>12.00</p>
-                <p>1</p>
+                <div class="msg-notif">
+                  <span v-if="item.msg_notif === 0"></span>
+                  <p class="msg-notifbox" v-else>{{item.msg_notif}}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -145,7 +148,12 @@ export default {
       senderImage: localStorage.getItem('image'),
       receiverImage: null,
       historyChat: [],
-      iduser: localStorage.getItem('iduser')
+      iduser: localStorage.getItem('iduser'),
+      listFriends: [],
+      // notif materials
+      msgNotif: 1,
+      receiverId: null,
+      receiverIndex: null
     }
   },
   computed: {
@@ -154,14 +162,14 @@ export default {
     })
   },
   methods: {
-    showChat1 (receiver) {
+    showChat1 (receiver, index) {
       this.chatMessage = 1
       this.receiverData = receiver.email
       this.receiverName = receiver.fullname
       this.receiverImage = receiver.image
       this.privateChat = []
       this.roomChat = []
-
+      this.receiverId = receiver.iduser
       this.setPrivateChat()
       this.socket.emit('get-history-message', {
         sender: this.senderData,
@@ -169,6 +177,15 @@ export default {
       })
       this.historyMessage()
       localStorage.setItem('image', this.usersDetail.image)
+      this.receiverIndex = index
+      this.listFriends[this.receiverIndex].msg_notif = 0
+
+      // reset notif
+      const notifData = {
+        sender: this.iduser,
+        receiver: this.receiverId
+      }
+      this.updateNotification(notifData)
 
       const listFriend = document.querySelector('.friend-content')
       listFriend.classList.toggle('friend-content-toggle')
@@ -177,17 +194,27 @@ export default {
       const message = {
         sender: this.senderData,
         msg: this.textChat,
-        receiver: this.receiverData
+        receiver: this.receiverData,
+        type: 1
       }
       this.roomChat = [...this.roomChat, message]
 
       this.socket.emit('send-message', {
         username: this.senderData,
         room: this.receiverData,
-        textChat: this.textChat
+        textChat: this.textChat,
+        type: 1
       })
-      this.textChat = ''
       this.setPrivateChat()
+      // notif on dev
+      const notif = {
+        idsender: this.iduser,
+        idreceiver: this.receiverId,
+        newmessage: this.textChat
+      }
+      this.socket.emit('set-msgnotif', notif)
+      this.listFriends[this.receiverIndex].newchats = this.textChat
+      this.textChat = ''
     },
     setPrivateChat () {
       const privateChats = this.roomChat.filter(e => {
@@ -213,7 +240,8 @@ export default {
       setting.classList.toggle('edit-profile-page-toggle')
     },
     ...mapActions({
-      getDetailUsers: 'users/getDetailUser'
+      getDetailUsers: 'users/getDetailUser',
+      updateNotification: 'friends/resetNotif'
     }),
     showReceiver () {
       const sideright = document.querySelector('.friend-slieder')
@@ -233,6 +261,25 @@ export default {
       }
     })
     this.getDetailUsers(this.iduser)
+    this.socket.emit('get-friends', this.iduser)
+    this.socket.on('list-friends', (payload) => {
+      payload.forEach(el => {
+        if (parseInt(el.id_users) === parseInt(this.iduser)) {
+          this.listFriends.push(el)
+        }
+      })
+    })
+    // notif room
+    this.socket.emit('join-room-notif', this.iduser)
+    this.socket.on('notif-response', (payload) => {
+      this.listFriends.map(el => {
+        // todo
+        if (el.id_friends === payload.sender) {
+          el.msg_notif += 1
+          el.newchats = payload.message
+        }
+      })
+    })
   }
 }
 </script>
@@ -428,7 +475,8 @@ export default {
 .time-notif p:nth-child(1) {
   margin-bottom: 0;
 }
-.time-notif p:nth-child(2) {
+
+.time-notif .msg-notifbox {
   width: 25px;
   height: 25px;
   background-color: #7E98DF;

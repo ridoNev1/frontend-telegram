@@ -15,12 +15,14 @@
       </div>
       <div class="profile-data">
         <div class="fullname">
-          <p v-if="nameToggle === 0">{{usersDetail.fullname}}</p>
-          <div class="md-form m-1" v-else>
-            <input type="text" id="form-phone" class="form-control" v-model="userName" required>
+          <div v-if="nameToggle === 0">
+            <p>{{usersDetail.fullname}}</p>
+            <b-icon icon="pencil" class="edit-btn1" @click="editusername($event)"></b-icon>
+          </div>
+          <div class="md-form m-0" v-else>
+            <input type="text" id="form-phone" class="form-control" v-model="usersDetail.fullname" required>
             <b-icon icon="arrow-right-circle-fill" class="edit-btn" variant="info" scale="1.5" @click="editDataUsername"></b-icon>
           </div>
-          <b-icon icon="pencil" class="edit-btn" @click="editusername($event)"></b-icon>
         </div>
         <p>{{usersDetail.phone}}</p>
       </div>
@@ -31,27 +33,27 @@
         <div v-if="editToggle === 0">
           <p>{{usersDetail.phone}}</p>
           <p>Edit phone number</p>
+          <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn($event)"></b-icon>
         </div>
         <div v-else>
           <div class="md-form m-1">
-            <input type="text" id="form-phone" class="form-control" v-model="userPhone" required>
+            <input type="text" id="form-phone" class="form-control" v-model="usersDetail.phone" required>
           </div>
           <b-icon icon="arrow-right-circle-fill" class="edit-btn" variant="info" scale="1.5" @click="editPhone"></b-icon>
         </div>
-        <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn($event)"></b-icon>
       </div>
       <div class="chage-phone-number">
         <div v-if="bioToggle === 0">
           <p>{{usersDetail.bio}}</p>
           <p>Bio</p>
+          <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn2($event)"></b-icon>
         </div>
         <div v-else>
           <div class="md-form m-1">
-            <input type="text" id="form-phone" class="form-control" v-model="userBio" required>
+            <input type="text" id="form-phone" class="form-control" v-model="usersDetail.bio" required>
           </div>
           <b-icon icon="arrow-right-circle-fill" class="edit-btn" variant="info" scale="1.5" @click="editBio"></b-icon>
         </div>
-        <b-icon icon="pencil" class="edit-btn" @click="editToggleBtn2($event)"></b-icon>
       </div>
     </div>
     <div class="setting-account">
@@ -93,59 +95,48 @@ export default {
   methods: {
     editToggleBtn (e) {
       this.editToggle = 1
-      e.target.style.display = 'none'
-      this.userPhone = this.usersDetail.phone
-      this.userBio = this.usersDetail.bio
-      this.userName = this.usersDetail.fullname
     },
     editToggleBtn2 (e) {
       this.bioToggle = 1
-      e.target.style.display = 'none'
-      this.userBio = this.usersDetail.bio
-      this.userPhone = this.usersDetail.phone
-      this.userName = this.usersDetail.fullname
     },
     editusername (e) {
       this.nameToggle = 1
       e.target.style.display = 'none'
-      this.userBio = this.usersDetail.bio
-      this.userPhone = this.usersDetail.phone
-      this.userName = this.usersDetail.fullname
     },
     editPhone () {
       const data = {
-        bio: this.userBio,
-        phone: this.userPhone,
+        bio: this.usersDetail.bio,
+        phone: this.usersDetail.phone,
         id: this.usersDetail.iduser,
-        fullname: this.userName
+        fullname: this.usersDetail.fullname
       }
       this.editDataUser(data).then(result => {
         this.$swal(result)
-        window.location = '/'
+        this.editToggle = 0
       })
     },
     editDataUsername () {
       const data = {
-        bio: this.userBio,
-        phone: this.userPhone,
+        bio: this.usersDetail.bio,
+        phone: this.usersDetail.phone,
         id: this.usersDetail.iduser,
-        fullname: this.userName
+        fullname: this.usersDetail.fullname
       }
       this.editDataUser(data).then(result => {
         this.$swal(result)
-        window.location = '/'
+        this.nameToggle = 0
       })
     },
     editBio () {
       const data = {
-        bio: this.userBio,
-        phone: this.userPhone,
+        bio: this.usersDetail.bio,
+        phone: this.usersDetail.phone,
         id: this.usersDetail.iduser,
-        fullname: this.userName
+        fullname: this.usersDetail.fullname
       }
       this.editDataUser(data).then(result => {
         this.$swal(result)
-        window.location = '/'
+        this.bioToggle = 0
       })
     },
     logout () {
@@ -158,7 +149,8 @@ export default {
     },
     ...mapActions({
       editDataUser: 'users/updateUsers',
-      updateImageData: 'users/updateImage'
+      updateImageData: 'users/updateImage',
+      getDetailUsers: 'users/getDetailUser'
     }),
     upload (event) {
       this.image = event.target.files[0]
@@ -170,11 +162,12 @@ export default {
       }
       this.updateImageData(dataimage).then(result => {
         if (result === 'File must be png/jpg/jpeg, max size 1mb') {
-          this.$swal('File must be png/jpg/jpeg, max size 1mb')
+          this.$swal(result)
         } else if (result === 'Ukuran File terlalu besar') {
-          this.$swal('max file 1mb')
+          this.$swal(result)
         } else {
-          window.location = '/'
+          // window.location = '/'
+          this.getDetailUsers(this.usersDetail.iduser)
         }
       })
     }
@@ -261,6 +254,12 @@ export default {
   position: absolute;
   right:20px;
   margin-top: -50px;
+  cursor: pointer;
+}
+.edit-btn1 {
+  position: absolute;
+  right:20px;
+  margin-top: -25px;
   cursor: pointer;
 }
 /* setting-list */
