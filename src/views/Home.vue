@@ -15,7 +15,7 @@
             <p><img src="../assets/Contacts.png" alt="Contact" class="mr-3"> Contacts</p>
             <p><img src="../assets/Vector.png" alt="Cals" style="margin-left: -5px; margin-right: 11px;"> Calls</p>
             <p><img src="../assets/bookmark.png" alt="Save" style="margin-left: 2px; margin-right: 19px;"> Save Message</p>
-            <p><img src="../assets/Invite friends.png" alt="invite" style="margin-left: -10px; margin-right: 19px;"> Invite Friends</p>
+            <p @click="showAddFriends"><img src="../assets/Invite friends.png" alt="invite" style="margin-left: -10px; margin-right: 19px;"> Invite Friends</p>
             <p><img src="../assets/FAQ.png" alt="faq" style="margin-left: -2px; margin-right: 18px;"> Telegram FAQ</p>
           </div>
         </div>
@@ -40,11 +40,14 @@
             </div>
             <div class="list-chatbox" v-else>
               <div class="profile-image1" :style="`background-image: url(http://localhost:3008/${item.image});`">
-                <img src="../assets/Online.png" alt="onlineBar">
+                <div>
+                  <span v-if="item.statuson === 'Offline'"></span>
+                  <img src="../assets/Online.png" alt="onlineBar" v-else>
+                </div>
               </div>
               <div class="name-chats">
                 <p>{{item.fullname}}</p>
-                <p>{{item.newchats}}</p>
+                <p class="chats-preview">{{item.newchats}}</p>
               </div>
               <div class="time-notif">
                 <p>12.00</p>
@@ -64,20 +67,26 @@
         </div>
         <div v-else class="chat-thereis">
           <div class="chat-navbar bg-white">
-            <img src="../assets/back.png" alt="back" @click="showChat1" style="cursor: pointer;">
+            <img src="../assets/back.png" alt="back" @click="showChatRes" style="cursor: pointer;">
             <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage}); cursor: pointer;`" @click="showReceiver">
               <img src="../assets/Online.png" alt="onlineBar">
             </div>
             <div class="name-chats">
               <p class="mt-3">{{receiverName}}</p>
-              <p style="color: #7E98DF;">online</p>
+              <div class="receiver-status">
+                <p class="text-secondary" v-if="listFriends[receiverIndex].statuson === 'Offline'">{{listFriends[receiverIndex].statuson}}</p>
+                <p style="color: #7E98DF;" v-else>{{listFriends[receiverIndex].statuson}}</p>
+              </div>
             </div>
           </div>
           <div class="chat-colunm">
             <div class="mt-3" v-for="(item, index2) in historyChat" :key="'a' + index2">
               <div class="chat-box" v-if="item.sender !== senderData">
                 <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
-                  <img src="../assets/Online.png" alt="onlineBar">
+                  <div>
+                    <span v-if="receiverStatus === 'Offline'"></span>
+                    <img src="../assets/Online.png" alt="onlineBar" v-else>
+                  </div>
                 </div>
                 <p>{{item.message}}</p>
               </div>
@@ -115,8 +124,9 @@
           </div>
         </div>
       </div>
-      <EditProfile class="edit-profile-page" @settingtoggle="settingApp"/>
+      <EditProfile class="edit-profile-page" @settingtoggle="settingApp" @setdc="disconnect"/>
       <ReceiverData  class="friend-slieder" @sideright="showReceiver"/>
+      <AddFriends class="add-friends-page" @closeaddfriends="showAddFriends"/>
     </div>
   </div>
 </template>
@@ -127,12 +137,14 @@ import { url } from '../helpers/env'
 import EditProfile from '../components/EditProfile'
 import { mapActions, mapGetters } from 'vuex'
 import ReceiverData from '../components/ReceiverData'
+import AddFriends from '../components/AddFriends'
 
 export default {
   name: 'Home',
   components: {
     EditProfile,
-    ReceiverData
+    ReceiverData,
+    AddFriends
   },
   data () {
     return {
@@ -153,7 +165,10 @@ export default {
       // notif materials
       msgNotif: 1,
       receiverId: null,
-      receiverIndex: null
+      receiverIndex: null,
+      // receiver status
+      receiverStatus: null
+
     }
   },
   computed: {
@@ -167,6 +182,7 @@ export default {
       this.receiverData = receiver.email
       this.receiverName = receiver.fullname
       this.receiverImage = receiver.image
+      this.receiverStatus = receiver.statuson
       this.privateChat = []
       this.roomChat = []
       this.receiverId = receiver.iduser
@@ -186,7 +202,10 @@ export default {
         receiver: this.receiverId
       }
       this.updateNotification(notifData)
-
+      const listFriend = document.querySelector('.friend-content')
+      listFriend.classList.toggle('friend-content-toggle')
+    },
+    showChatRes () {
       const listFriend = document.querySelector('.friend-content')
       listFriend.classList.toggle('friend-content-toggle')
     },
@@ -246,6 +265,13 @@ export default {
     showReceiver () {
       const sideright = document.querySelector('.friend-slieder')
       sideright.classList.toggle('friend-slider-box')
+    },
+    disconnect () {
+      this.socket.emit('on-dc', this.iduser)
+    },
+    showAddFriends () {
+      const addFriends = document.querySelector('.add-friends-page')
+      addFriends.classList.toggle('add-friends-toggle')
     }
   },
   mounted () {
@@ -277,6 +303,24 @@ export default {
         if (el.id_friends === payload.sender) {
           el.msg_notif += 1
           el.newchats = payload.message
+        }
+      })
+    })
+
+    // online offline status
+    this.socket.emit('set-status', this.iduser)
+    this.socket.on('status-on', (payload) => {
+      this.listFriends.map(el => {
+        if (el.id_friends === +payload.onlineid) {
+          el.statuson = 'Online'
+        }
+      })
+    })
+
+    this.socket.on('status', (payload) => {
+      this.listFriends.map(el => {
+        if (el.id_friends === +payload.offlineid) {
+          el.statuson = 'Offline'
         }
       })
     })
@@ -429,6 +473,19 @@ export default {
 .message-status p {
   margin-left: 50px;
 }
+.chat-list {
+  overflow: scroll;
+}
+.chat-list::-webkit-scrollbar {
+  width: 7px;
+  height: 0;
+}
+.chat-list::-webkit-scrollbar-thumb {
+  background-color: grey;
+}
+.chat-list::-webkit-scrollbar-track {
+  display: none;
+}
 
 /* profile-image */
 .list-chatbox {
@@ -470,6 +527,13 @@ export default {
 }
 .name-chats p:nth-child(1):hover {
   color: #7E98DF;
+}
+.chats-preview {
+  overflow: hidden;
+   text-overflow: ellipsis;
+   display: -webkit-box;
+   -webkit-line-clamp: 1; /* number of lines to show */
+   -webkit-box-orient: vertical;
 }
 
 .time-notif p:nth-child(1) {
@@ -606,6 +670,17 @@ export default {
   right: 0;
 }
 
+/* add friends */
+.add-friends-page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  display: none;
+}
+
 /* responsive breakpoin */
 @media screen and (max-width: 720px) {
   .chat-page {
@@ -626,5 +701,9 @@ export default {
   .chat-navbar img:nth-child(1) {
     display: unset;
   }
+}
+/* custom toggle */
+.add-friends-toggle {
+  display: flex;
 }
 </style>

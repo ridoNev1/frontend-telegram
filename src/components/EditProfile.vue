@@ -146,6 +146,7 @@ export default {
       localStorage.removeItem('email')
       localStorage.removeItem('image')
       window.location = '/login'
+      this.$emit('setdc')
     },
     ...mapActions({
       editDataUser: 'users/updateUsers',
@@ -166,7 +167,6 @@ export default {
         } else if (result === 'Ukuran File terlalu besar') {
           this.$swal(result)
         } else {
-          // window.location = '/'
           this.getDetailUsers(this.usersDetail.iduser)
         }
       })

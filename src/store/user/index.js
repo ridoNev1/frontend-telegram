@@ -93,6 +93,15 @@ const actions = {
         console.log(err)
       })
     })
+  },
+  getAllUser: (context, payload) => {
+    return new Promise((resolve, reject) => {
+      axios.get(`${url}/users/getallusers?name=${payload}`).then(result => {
+        resolve(result.data.data)
+      }).catch(err => {
+        reject(new Error(err))
+      })
+    })
   }
 }
 

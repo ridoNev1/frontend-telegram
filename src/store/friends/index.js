@@ -11,6 +11,16 @@ const actions = {
         resolve(response)
       })
     })
+  },
+  inserFriend: (context, payload) => {
+    return new Promise((resolve, reject) => {
+      axios.post(`${url}/friends/insert`, {
+        id_users: payload.iduser,
+        id_friends: payload.idfrieds
+      }).then(response => {
+        resolve(response.data.message)
+      })
+    })
   }
 }
 
