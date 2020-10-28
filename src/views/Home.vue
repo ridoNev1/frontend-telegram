@@ -50,7 +50,7 @@
                 <p class="chats-preview">{{item.newchats}}</p>
               </div>
               <div class="time-notif">
-                <p>12.00</p>
+                <p>00.00</p>
                 <div class="msg-notif">
                   <span v-if="item.msg_notif === 0"></span>
                   <p class="msg-notifbox" v-else>{{item.msg_notif}}</p>
@@ -84,7 +84,7 @@
               <div class="chat-box" v-if="item.sender !== senderData">
                 <div class="profile-pict" :style="`background-image: url(http://localhost:3008/${receiverImage});`">
                   <div>
-                    <span v-if="receiverStatus === 'Offline'"></span>
+                    <span v-if="listFriends[receiverIndex].statuson === 'Offline'"></span>
                     <img src="../assets/Online.png" alt="onlineBar" v-else>
                   </div>
                 </div>
@@ -234,6 +234,11 @@ export default {
       this.socket.emit('set-msgnotif', notif)
       this.listFriends[this.receiverIndex].newchats = this.textChat
       this.textChat = ''
+      // auto scroll
+      const chatBox = document.querySelector('.chat-colunm')
+      setTimeout(() => {
+        chatBox.scrollTop = chatBox.scrollHeight
+      }, 1)
     },
     setPrivateChat () {
       const privateChats = this.roomChat.filter(e => {
@@ -252,6 +257,10 @@ export default {
     historyMessage () {
       this.socket.on('history-message', (payload) => {
         this.historyChat = payload
+        const chatBox = document.querySelector('.chat-colunm')
+        setTimeout(() => {
+          chatBox.scrollTop = chatBox.scrollHeight
+        }, 1)
       })
     },
     settingApp () {
@@ -299,10 +308,14 @@ export default {
     this.socket.emit('join-room-notif', this.iduser)
     this.socket.on('notif-response', (payload) => {
       this.listFriends.map(el => {
-        // todo
+        // chats new
         if (el.id_friends === payload.sender) {
-          el.msg_notif += 1
           el.newchats = payload.message
+        }
+
+        // notif new
+        if (el.id_friends === payload.sender && el.id_friends !== this.receiverId) {
+          el.msg_notif += 1
         }
       })
     })
